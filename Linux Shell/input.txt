@@ -1,0 +1,2 @@
+This is for testing redirection.
+Every line will be written to std::cout and std::cerr.

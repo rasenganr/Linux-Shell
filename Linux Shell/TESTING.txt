@@ -1,0 +1,464 @@
+
+~~~~~~~~~~~~~~~~~~~~Testing Guide~~~~~~~~~~~~~~~~~~~~
+
+(1) Run (nothing)
+    Result:
+	Please at least input something...
+    Reason: No input.
+
+(2) Run       (whitespaces)
+    Result:
+	Please at least input something...
+    Reason: Commands with only whitespaces are not valid.
+
+(3) Run ./test
+    Result:
+	Program was successful
+    Reason: The program test prints every command line argument in order, but there is no command line argument.
+
+(4) Run ./test abc
+    Result:
+	1-th argument: abc
+	Program was successful
+    Reason: The program test prints the command line argument.
+
+(5) Run ./test a b c d
+    Result:
+	1-th argument: a
+	2-th argument: b
+	3-th argument: c
+	4-th argument: d
+	Program was successful
+    Reason: The program test prints the command line arguments seperated by whitespaces.
+
+(6) Run       ./test     abc1   2def            gh99
+    Result:
+	1-th argument: abc1
+	2-th argument: 2def
+	3-th argument: gh99
+	Program was successful
+    Reason: Command line arguments are seperated by whitespaces, and redundant whitespaces are skipped.
+
+(7) Run ./test ab\ cd
+    Result:
+	1-th argument: ab cd
+	Program was successful
+    Result: The backslash can be used to input escaped whitespace.
+
+(8) Run ./test ab\\cd
+    Result:
+	1-th argument: ab\cd
+	Program was successful
+    Reason: The backslash can be used to input escaped backslash.
+
+(9) Run ./test ab\"cd
+    Result:
+	1-th argument: ab"cd
+	Program was successful
+    Reason: The backslash can be used to input escaped quotation mark.
+
+(10) Run ./test ab\1cd
+    Result:
+	1-th argument: ab\1cd
+	Program was successful
+    Reason: The character after the backslash has no functionality (number), so just treat the backslash as a normal character.
+    
+(11) Run ./test ab\zcd
+    Result:
+	1-th argument: ab\zcd
+	Program was successful
+    Reason: The character after the backslash has no functionality (letter), so just treat the backslash as a normal character.
+
+(12) Run ./test "ab  cd"
+     Result:
+	1-th argument: ab  cd
+	Program was successful
+     Reason: Whitespaces in quotation marks are treated as normal characters.
+
+(13) Run ./test "abc
+     Result:
+	Unclosed quotation mark!
+     Reason: The last quotation mark is unclosed, so report an error.
+
+(14) Run ./test "abc\""
+     Result:
+	1-th argument: abc"
+	Program was successful
+     Reason: The second quotation mark is escaped.
+
+(15) Run ./test "abc\"
+     Result:
+	Unclosed quotation mark!
+     Reason: The second quotation mark is escaped, and the first quotation mark is unclosed, so report an error.
+
+(16) Run ./test abc"def"ghi
+     Result:
+	1-th argument: abc
+	2-th argument: def
+	3-th argument: ghi
+	Program was successful
+     Reason: Characters before and after quotation marks are seperated into different arguments.
+
+(17) Run ./test abc    def"ghi\\\ \"jkl   mno"pqr          stu\"
+     Result:
+	1-th argument: abc
+	2-th argument: def
+     	3-th argument: ghi\ "jkl   mno
+     	4-th argument: pqr
+     	5-th argument: stu"
+	Program was successful
+     Reason: All the characters are seperated according to whitespaces, backslashes and quotation marks correctly. Redundant whitespaces are skipped.
+
+(18) Run /bin/ls
+     Result:
+	(Whatever in the current directory)
+	Program was successful
+     Reason: The shell runs the program ls in the directory /bin.
+
+(19) Run /home/hw243/ece551/mp_miniproject/test abc
+     Result:
+	1-th argument: abc
+	Program was successful
+     Reason: The shell runs the program test in the directory /home/hw243/ece551/mp_miniproject.
+
+(20) Run ls
+     Result:
+	(Whatever in the current directory)
+	Program was successful
+     Reason: The shell searches for ls in directories indicated by PATH (actually by ECE551PATH).
+
+(21) Run /bin/nosuchprogram
+     Result:
+	Command nosuchprogram not found
+     Reason: There is no nosuchprogram in the directory /bin.
+
+(22) Run nosuchprogram
+     Result:
+	Command nosuchprogram not found
+     Reason: There is no nosuchprogram in the directories indicated by ECE551PATH.
+
+(23) Run ./fail
+     Result:
+	Program failed with code 256
+     Reason: The program fail returns EXIT_FAILURE.
+
+(24) Run ./segfault
+     Result:
+	Terminated by signal 11
+     Reason: The program segfault introduces a segmentation fault.
+
+(25) Run exit
+     Result:
+	~~~~~Thanks for using my shell~~~~~
+     Reason: The user can type exit to exit the shell.
+
+(26) Run EOF (ctrl + D)
+     Result:
+	~~~~~Thanks for using my shell~~~~~
+     Reason: The user can type EOF to exit the shell.
+
+(27) Run cd ..
+     Result:
+	(The working directory becomes /home/hw243/ece551)
+     Reason: The command cd changes the working directory to the parrent directory.
+
+(28) Run cd /home/hw243
+     Result:
+	(The working directory becomes /home/hw243)
+     Reason: The command cd changes the working directory to /home/hw243.
+
+(29) Run cd
+     Result:
+	Please input the target directory
+     Reason: The command cd needs a target directory, so report an error.
+
+(30) Run cd nosuchdirectory
+     Result:
+	Failed to change working directory!
+     Reason: Trying to change to a directory that does not exist results an error.
+
+(31) Run set var1 123
+     	 ./test $var1
+     Result:
+	1-th argument: 123
+	Program was successful
+     Reason: The variable var1 is set to 123, and it can be used in command line arguments with $.
+
+(32) Run set somevar 123
+     	 set somev 999
+	 ./test abc$somevarabc
+     Result:
+	1-th argument: abc123abc
+	Program was successful
+     Reason: Detect the longest variable and leave everything that is not a variable unchanged.
+
+(33) Run set var1 123
+     	 ./test $var1
+     	 set var1 999
+	 ./test $var1
+     Result:
+	1-th argument: 123
+	Program was successful
+
+	1-th argument: 999
+	Program was successful
+     Reason: When the variable exists, setting it again changes its value.
+
+(34) Run set var1 abc123def
+     	 rev var1
+	 ./test $var1
+     Result:
+	1-th argument: fed321cba
+	Program was successful
+     Reason: The command rev reverses an existing variable.
+
+(35) Run rev nosuchvar
+     Result:
+	There is no such var!
+     Reason: Trying to reverse a variable that does not exist results in an error.
+
+(36) Run set ECE551PATH /home:/home/hw243
+     	 ls
+     Result:
+	Command ls not found
+     Reason: After changing ECE551PATH, the shell searches for ls in the directories /home and /home/hw243. There is no ls in these directories.
+
+(37) Run set var1 123
+     	 env
+     Result:
+	(Lots of variables with their values, but no var1)
+	Program was successful
+     Reason: The variable is not visible for child processes before exported.
+
+(38) Run set var1 123
+     	 export var1
+	 env
+     Result:
+	(Lots of variables with their values)
+	var1=123
+	Program was successful
+     Reason: The variable is visible for child processes after exported.
+
+(39) Run export nosuchvar
+     Result:
+	There is no such var!
+     Reason: Trying to export a variable that does not exist results in an error.
+
+(40) Run set 123 999
+     Result:
+	Invalid variable name!
+     Reason: The first character of variable names cannot be numbers.
+
+(41) Run set 1abc 999
+     Result:
+	Invalid variable name!
+     Reason: The first character of variable names cannot be numbers, though the rest characters can.
+
+(42) Run set ab#cd 999
+     Result:
+	Invalid variable name!
+     Reason: The variable name can only contain numbers, letters and underscores.
+
+(43) Run set ab_cd123 999
+     	 ./test $ab_cd123
+     Result:
+	1-th argument: 999
+	Program was successful
+     Reason: This is a valid variable name.
+
+(44) Run set var1 abc\ "aa" -\\
+     	 export var1
+	 env
+	 ./test $var1
+     Result:
+	(Lots of variables with their values)
+	var1=abc\ "aa" -\\
+	Program was successful
+
+	1-th argument: abc 
+	2-th argument: aa
+	3-th argument: -\
+	Program was successful
+     Reason: All the characters after the variable name is its value.
+
+(45) Run set var1
+     Result:
+	Please type: set var value
+     Reason: Invalid syntax using set.
+
+(46) Run set
+     Result:
+	Please type: set var value
+     Reason: Invalid syntax using set.
+
+(47) Run rev
+     Result:
+	Please type: rev var
+     Reason: Invalid syntax using rev.
+
+(48) Run export
+     Result:
+	Please type: export var
+     Reason: Invalid syntax using export.
+
+(49) Run set var1 123
+     	 export var1
+	 rev var1
+	 env
+	 export var1
+	 env
+     Result:
+	(Lots of variables with their values)
+	var1=123
+	Program was successful
+
+	(Lots of variables with their values)
+	var1=321
+	Program was successful
+     Reason: The exported variable would not be changed by rev unless it is exported again.
+
+(50) Run set PATH /home/hw243
+     	 ls
+     Result:
+	(Whatever in the current directory)
+     Reason: Changing PATH does not affect where to search for the program.
+
+(51) Run set somevar \"abc123
+     	 set somev 999
+	 rev somevar
+	 ./test abc "111  $somevar\ABC
+     Result:
+	1-th argument: abc
+	2-th argument: 111  321cba
+     	3-th argument: \ABC
+     	Program was successful
+     Reason: The variable somevar includes a quotation mark, and it becomes a closing quotation mark after reversed. The backslash is not erased. In this testcase, it is used to make '\' in "\ABC" escaped.
+
+(52) Run ls > output.txt
+     Result:
+	(The output of ls is written to output.txt)
+	Program was successful
+     Reason: The output of ls is redirected to output.txt. If the output.txt does not exist, create one and use it.
+
+(53) Run ./redirection < input.txt
+     Result:
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~~~Testing redirection~~~~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~Testing cerr redirection~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	---This is for testing redirection.
+	***This is for testing redirection.
+	---Every line will be written to std::cout and std::cerr.
+	***Every line will be written to std::cout and std::cerr.
+	Program was successful
+     Reason: The std::cin of the program redirection is redirected to input.txt. This program outputs every line obtained from std::cin to std::cout with "---" and to std::cerr with "***".
+
+(54) Run ./redirection < input.txt > output.txt
+     Result:
+	(The output of the program redirection is written to output.txt)
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~Testing cerr redirection~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	***This is for testing redirection.
+	***Every line will be written to std::cout and std::cerr.
+	Program was successful
+     Reason: The std::cin is redirected to input.txt, and std::cout is redirected to output.txt.
+
+(55) Run ./redirection < input.txt 2> error.txt
+     Result:
+	(The error message of the program redirection is written to error.txt)
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~~~Testing redirection~~~~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	---This is for testing redirection.
+	---Every line will be written to std::cout and std::cerr.
+	Program was successful
+     Reason: The std::cin is redirected to input.txt, and std::cerr is redirected to error.txt.
+
+(56) Run ./redirection < nosuchfile.txt
+     Result:
+	No such file for input redirection!
+     Reason: Trying to redirect std::cin to a file (with relative path) that does not exist results in an error.
+
+(57) Run ./redirection < home/hw243/nosuchfile.txt
+     Result:
+	No such file for input redirection!
+     Reason: Trying to redirect std::cin to a file (with absolute path) that does not exist results in an error.
+
+(58) Run ./redirection <
+     	 ./redirection >
+	 ./redirection 2>
+     Result:
+	Please input a file name for redirection
+
+	Please input a file name for redirection
+
+	Please input a file name for redirection
+     Reason: No file for redirection results in an error.
+
+(59) Run ./redirection > output.txt
+     	 Hello, world! Hello 551!
+	 This course is difficult...
+	 EOF (ctrl+D)
+     Result:
+	(The output of the program redirection is written to output.txt)
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~Testing cerr redirection~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Hello world! Hello 551! (Typed by the user)
+	***Hello world! Hello 551!
+	This course is difficult... (Typed by the user)
+	***This course is difficult...
+	Program was successful
+     Reason: The std::cout is redirected to output.txt. The program redirection outputs what the user types to std::cout.
+
+(60) Run ./redirection 2> error.txt > output.txt < input.txt
+     Result:
+	/////(error.txt)/////
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~Testing cerr redirection~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	***This is for testing redirection.
+	***Every line will be written to std::cout and std::cerr.
+	/////(error.txt)/////
+	/////(output.txt)////
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~~~Testing redirection~~~~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	---This is for testing redirection.
+	---Every line will be written to std::cout and std::cerr.
+	/////(output.txt)////
+	Program was successful
+     Reason: The std::cin is redirected to input.txt, the std::cout is redirected to output.txt, and the std::cerr is redirected to error.txt. The order of these three redirections does not matter.
+
+(61) Run ./redirection <input.txt
+     Result:
+     	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~~~Testing redirection~~~~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~Testing cerr redirection~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	(waiting for input or EOF)
+     Reason: '<' must be an independent argument, otherwise it has no effect. (Same for '>' and '2>')
+
+(62) Run ./redirection < /home/hw243/input.txt > /home/hw243/output.txt
+     (Assume there is an input.txt in the directory /home/hw243)
+     Result:
+	(The output of the program redirection is written to /home/hw243/output.txt)
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	~~~~~~~Testing cerr redirection~~~~~~~
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	***This is for testing redirection.
+	***Every line will be written to std::cout and std::cerr.
+	Program was successful
+     Reason: The file can be in other directories.
+
+(63) Run .
+     Result:
+	execve failed
+	Program failed with code 256
+	(Valgrind is clean)
+     Reason: I make the failing execve return as normal (with EXIT_FAILURE), but report an error to avoid silent failure. This is because keeping valgrind clean in any situation is important.
